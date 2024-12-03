@@ -1,3 +1,5 @@
+import copy
+import comfy
 import torch
 
 class MultiLatentComposite:
@@ -7,6 +9,7 @@ class MultiLatentComposite:
             "required": {
                 "samples_to": ("LATENT",),
                 "samples_from0": ("LATENT",),
+                "mask": ("MASK",),
             },
             "hidden": {"extra_pnginfo": "EXTRA_PNGINFO", "unique_id": "UNIQUE_ID"},
         }
@@ -15,7 +18,7 @@ class MultiLatentComposite:
 
     CATEGORY = "Davemane42"
 
-    def composite(self, samples_to, extra_pnginfo, unique_id, **kwargs):
+    def composite(self, samples_to, extra_pnginfo, unique_id, mask=None, **kwargs):
 
         values = []
 
@@ -31,7 +34,7 @@ class MultiLatentComposite:
 
         k = 0
         for arg in kwargs:
-            if k > len(values): break;
+            if k > len(values): break
 
             x =  values[k][0] // 8
             y = values[k][1] // 8
@@ -42,7 +45,12 @@ class MultiLatentComposite:
                 s[:,:,y:y+samples_from.shape[2],x:x+samples_from.shape[3]] = samples_from[:,:,:samples_to.shape[2] - y, :samples_to.shape[3] - x]
             else:
                 samples_from = samples_from[:,:,:samples_to.shape[2] - y, :samples_to.shape[3] - x]
-                mask = torch.ones_like(samples_from)
+                if mask is None:
+                    mask = torch.ones_like(samples_from)
+                else:
+                    mask = mask.to(samples_to.device, copy=True)
+                    mask = torch.nn.functional.interpolate(mask.reshape((-1, 1, mask.shape[-2], mask.shape[-1])), size=(samples_from.shape[2], samples_from.shape[3]), mode="bilinear")
+                    mask = comfy.utils.repeat_to_batch_size(mask, samples_from.shape[0])
                 for t in range(feather):
                     if y != 0:
                         mask[:,:,t:1+t,:] *= ((1.0/feather) * (t + 1))

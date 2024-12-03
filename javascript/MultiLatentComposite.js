@@ -5,7 +5,7 @@ function addMultiLatentCompositeCanvas(node, app) {
 
 	function findSizingNode(node, index=null) {
 
-		const inputList = (index !== null) ? [index] : [...Array(node.inputs.length).keys()]
+		const inputList = (index !== null) ? [index] : [...Array(node.inputs.length-1).keys()]
 		if (inputList.length === 0) { return }
 
 		for (let i of inputList) {
@@ -237,7 +237,7 @@ function addMultiLatentCompositeCanvas(node, app) {
 		// if it goes off screen quickly, the input may not be removed
 		// this shifts it off screen so it can be moved back if the node is visible.
 		for (let n in app.graph._nodes) {
-			n = graph._nodes[n];
+			n = app.graph._nodes[n];
 			for (let w in n.widgets) {
 				let wid = n.widgets[w];
 				if (Object.hasOwn(wid, "canvas")) {
@@ -280,9 +280,9 @@ app.registerExtension({
 
 						let values = node.properties["values"]
 
-						node.widgets[2].value = values[v][0]
-						node.widgets[3].value = values[v][1]
-						node.widgets[4].value = values[v][2]
+						node.widgets[3].value = values[v][0]
+						node.widgets[4].value = values[v][1]
+						node.widgets[5].value = values[v][2]
 					},
 					{ step: 10, max: 1 }
 
